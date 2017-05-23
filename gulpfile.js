@@ -14,7 +14,8 @@ var useref = require('gulp-useref'),
 		cssmin = require('gulp-clean-css'),
 		uglify = require('gulp-uglify'),
 		rimraf = require('rimraf'),
-		notify = require('gulp-notify');
+		notify = require('gulp-notify'),
+		ftp = require('vinyl-ftp');
 
 var paths = {
 			blocks: 'blocks/',
@@ -63,7 +64,7 @@ gulp.task('scripts', function() {
 //watch
 gulp.task('watch', function() {
 	gulp.watch(paths.blocks + '**/*.pug', ['pug']);
-	gulp.watch(paths.blocks + '**/*.scss', ['sass']);
+	gulp.watch(paths.blocks + '**/*.sass', ['sass']);
 	gulp.watch(paths.blocks + '**/*.js', ['scripts']);
 });
 
@@ -107,6 +108,28 @@ gulp.task('imgBuild', ['clean'], function() {
 gulp.task('fontsBuild', ['clean'], function() {
 	return gulp.src(paths.devDir + '/fonts/*')
 		.pipe(gulp.dest(paths.outputDir + 'fonts/'));
+});
+
+//ftp
+gulp.task('send', function() {
+	var conn = ftp.create({
+		host:     '77.120.110.166',
+		user:     'alexlabs',
+		password: 'Arj4h00F9x',
+		parallel: 5
+	});
+
+	/* list all files you wish to ftp in the glob variable */
+	var globs = [
+		'build/**/*',
+		'!node_modules/**' // if you wish to exclude directories, start the item with an !
+	];
+
+	return gulp.src( globs, { base: '.', buffer: false } )
+		.pipe( conn.newer( '/' ) ) // only upload newer files
+		.pipe( conn.dest( '/' ) )
+		.pipe(notify("Dev site updated!"));
+
 });
 
 
